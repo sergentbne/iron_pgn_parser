@@ -27,29 +27,34 @@ mod iron_pgn_parser {
             panic!("Filtered not unique");
         }
         let game = filtered_pgn.last().unwrap();
-        let pair_number_of_moves = Regex::new(r"(\d+\.{3}\h)").unwrap();
-        let odd_number_of_moves = Regex::new(r"(\d+\.{1}\h)").unwrap();
-        let mut get_last_pair: String = pair_number_of_moves
-            .find_iter(game)
-            .last()
-            .unwrap()
-            .as_str()
-            .into();
+        // let pair_number_of_moves = Regex::new(r"(\d+\.{3}[[:space:]])").unwrap();
+        let odd_number_of_moves = Regex::new(r"(\d+\.{1}[[:space:]])").unwrap();
+        // let mut get_last_pair: String = pair_number_of_moves
+        //     .find_iter(game)
+        //     .last()
+        //     .unwrap()
+        //     .as_str()
+        //     .into();
 
         let mut get_last_odd: String = odd_number_of_moves
             .find_iter(game)
+            // .map(|x| {
+            //     println!("{:?}", x);
+            //     return x;
+            // })
             .last()
             .unwrap()
             .as_str()
             .into();
-        get_last_pair.truncate(3);
-        get_last_odd.truncate(1);
-        let max_pair = get_last_pair.parse::<u32>().unwrap();
+        // get_last_pair.truncate(3);
+        get_last_odd.truncate(2);
+        // let max_pair = get_last_pair.parse::<u32>().unwrap();
         let max_odd = get_last_odd.parse::<u32>().unwrap();
-        if max_pair > max_odd {
-            return Ok(max_pair as usize);
-        } else {
-            return Ok(max_pair as usize);
-        }
+
+        return Ok(max_odd as usize);
+        // if max_pair < max_odd {
+        // } else {
+        //     return Ok(max_pair as usize);
+        // }
     }
 }
