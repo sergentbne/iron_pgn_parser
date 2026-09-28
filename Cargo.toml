@@ -1,0 +1,13 @@
+[package]
+name = "iron_pgn_parser"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+
+[lib]
+name = "iron_pgn_parser"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.29.2"
+regex = "1.13.1"
