@@ -152,7 +152,6 @@ jobs:
     steps:
       - uses: actions/download-artifact@v7
         with: 
-          name: python-package-distributions
           path: dist/
 
       - name: Generate artifact attestation
