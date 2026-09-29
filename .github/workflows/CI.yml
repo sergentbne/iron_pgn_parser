@@ -160,3 +160,5 @@ jobs:
         uses: astral-sh/setup-uv@v7
       - name: Publish package distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: /home/runner/work/iron_pgn_parser
