@@ -49,7 +49,9 @@ mod iron_pgn_parser {
         // get_last_pair.truncate(3);
         get_last_odd.truncate(2);
         // let max_pair = get_last_pair.parse::<u32>().unwrap();
-        let max_odd = get_last_odd.parse::<u32>().unwrap();
+        let max_odd = get_last_odd
+            .parse::<u32>()
+            .expect(format!("{} provided cannot be converted to a u32", get_last_odd).as_str());
 
         return Ok(max_odd as usize);
         // if max_pair < max_odd {
