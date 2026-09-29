@@ -47,7 +47,7 @@ mod iron_pgn_parser {
             .as_str()
             .into();
         // get_last_pair.truncate(3);
-        get_last_odd.truncate(2);
+        get_last_odd.truncate(3);
         // let max_pair = get_last_pair.parse::<u32>().unwrap();
         let max_odd = get_last_odd
             .parse::<u32>()
