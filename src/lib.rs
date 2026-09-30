@@ -47,9 +47,15 @@ mod iron_pgn_parser {
             .as_str()
             .into();
         // get_last_pair.truncate(3);
-        get_last_odd.truncate(3);
         // let max_pair = get_last_pair.parse::<u32>().unwrap();
-        let max_odd = get_last_odd
+        //
+        let find_last_good = Regex::new(r"\d+").unwrap();
+        let last: String = find_last_good
+            .find(get_last_odd.as_str())
+            .unwrap()
+            .as_str()
+            .into();
+        let max_odd = last
             .parse::<u32>()
             .expect(format!("{} provided cannot be converted to a u32", get_last_odd).as_str());
 
