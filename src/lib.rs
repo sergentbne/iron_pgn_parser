@@ -55,6 +55,7 @@ mod iron_pgn_parser {
             .unwrap()
             .as_str()
             .into();
+        println!("{}", last);
         let max_odd = last
             .parse::<u32>()
             .expect(format!("{} provided cannot be converted to a u32", get_last_odd).as_str());
