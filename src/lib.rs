@@ -2,6 +2,7 @@
 /// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
 /// import the module.
 #[pyo3::pymodule]
+#[pyo3(name = "native")]
 mod iron_pgn_parser {
     use pyo3::prelude::*;
     use regex::Regex;
