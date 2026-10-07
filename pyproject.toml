@@ -12,6 +12,11 @@ dependencies = [
     "maturin>=1.15.0",
 ]
 
+classifier = ["Development Status :: 2 - Pre-Alpha",
+		   "Intended Audience :: Science/Research",
+		   "Programming Language :: Rust",
+		   "Programming Language :: Python"]
+license = "BSD-3-Clause-Attribution"
 [project.scripts]
 iron-pgn-parser = "iron_pgn_parser:main"
 
@@ -21,5 +26,5 @@ build-backend = "maturin"
 
 [tool.maturin]
 python-source = "src/python"
-module-name = "chess_bridge.native"
+module-name = "iron_pgn_parser.native"
 
