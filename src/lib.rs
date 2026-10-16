@@ -4,67 +4,112 @@
 #[pyo3::pymodule]
 #[pyo3(name = "native")]
 mod iron_pgn_parser {
-    use pyo3::prelude::*;
+    use pyo3::{PyResult, prelude::*, pyfunction};
     use regex::Regex;
+    use std::collections::HashMap;
+    use std::fs::File;
+    use std::io::{BufReader, Read};
+    use zstd::Decoder;
+    use zstd::zstd_safe::WriteBuf;
 
     /// Formats the sum of two numbers as string.
     #[pyfunction]
-    fn get_number_of_moves(pgn: String) -> PyResult<usize> {
-        let pgn_vec: Vec<String> = pgn.lines().map(|x| String::from(x)).collect();
-        let filtered_pgn: Vec<&String> = pgn_vec
+    fn parse_san(pgn: String) -> PyResult<usize> {
+        todo!();
+        let brackets_regex =
+            Regex::new(r"\[([^]]+)\]").expect("This should always return a good REGEX.");
+        let braces_regex = Regex::new(r"\{.*\}").expect("This should always return a good REGEX.");
+        let brackets_removed: String = String::from(brackets_regex.replace_all(pgn.as_str(), ""));
+        let braces_and_bracket_removed: String =
+            String::from(braces_regex.replace_all(pgn.as_str(), ""));
+
+        return Ok(1 as usize);
+    }
+
+    #[pyfunction]
+    fn parse_headers(pgn: &str) -> PyResult<HashMap<&str, &str>> {
+        // https://stackoverflow.com/a/2403148/32714486
+        // println!("{:?}", pgn);
+        let brackets_regex =
+            Regex::new(r"\[([^]]+)\]").expect("This should always return a good REGEX.");
+        let all_brackets: Vec<&str> = brackets_regex.find_iter(pgn).map(|m| m.as_str()).collect();
+
+        let zipped = all_brackets
             .iter()
-            .filter(|x| {
-                if x.len() < 1 {
-                    return false;
-                };
-                if x.starts_with("[") {
-                    return false;
-                };
-                return true;
-            })
-            .collect();
-        if filtered_pgn.len() != 1 {
-            println!("{:?}", filtered_pgn);
-            panic!("Filtered not unique");
+            .map(|x| x.trim_matches(|c| c == '[' || c == ']'))
+            .map(|x| x.splitn(2, " ").collect::<Vec<&str>>())
+            .map(|x| (x[0], x[1]))
+            .collect::<HashMap<&str, &str>>();
+        Ok(zipped)
+    }
+    #[pyfunction]
+    fn stream_file(file_path: &str) -> PyResult<()> {
+        fn find_subsequence(haystack: &[u8], needle: &[u8]) -> Option<usize> {
+            haystack
+                .windows(needle.len())
+                .position(|window| window == needle)
         }
-        let game = filtered_pgn.last().unwrap();
-        // let pair_number_of_moves = Regex::new(r"(\d+\.{3}[[:space:]])").unwrap();
-        let odd_number_of_moves = Regex::new(r"(\d+\.{1}[[:space:]])").unwrap();
-        // let mut get_last_pair: String = pair_number_of_moves
-        //     .find_iter(game)
-        //     .last()
-        //     .unwrap()
-        //     .as_str()
-        //     .into();
+        const BUF_SIZE: usize = 2_usize.pow(16);
+        let bufreader = BufReader::with_capacity(BUF_SIZE, File::open(file_path)?);
+        let mut decoder = zstd::Decoder::with_buffer(bufreader)?;
+        const READER_SIZE: usize = 2_usize.pow(12);
+        let buffer: &mut [u8] = &mut [0; READER_SIZE as usize];
+        let mut at_eof = false;
+        let mut rest: Vec<u8> = Vec::new();
+        let mut counter = 0;
+        while !at_eof {
+            let read_size = decoder.read(buffer).unwrap();
+            if read_size != READER_SIZE as usize {
+                at_eof = true;
+            }
+            if counter < 5 {
+                println!("value of readsize is {} is at eof {}", read_size, at_eof);
+            }
+            let mut tmp = rest.clone();
+            tmp.extend(buffer.as_ref());
+            let mut data = tmp;
+            while let Some(found) = find_subsequence(data.as_slice(), b"\n\n[") {
+                // if is_first {
+                //     println!("{}", found);
+                //     println!("{:?}", str::from_utf8(data.get(..found).unwrap()));
+                //     is_first = false;
+                // }
+                rest = data.split_off(found + 1);
 
-        let mut get_last_odd: String = odd_number_of_moves
-            .find_iter(game)
-            // .map(|x| {
-            //     println!("{:?}", x);
-            //     return x;
-            // })
-            .last()
-            .unwrap()
-            .as_str()
-            .into();
-        // get_last_pair.truncate(3);
-        // let max_pair = get_last_pair.parse::<u32>().unwrap();
-        //
-        let find_last_good = Regex::new(r"\d+").unwrap();
-        let last: String = find_last_good
-            .find(get_last_odd.as_str())
-            .unwrap()
-            .as_str()
-            .into();
-        println!("{}", last);
-        let max_odd = last
-            .parse::<u32>()
-            .expect(format!("{} provided cannot be converted to a u32", get_last_odd).as_str());
+                if counter == 1 {
+                    // println!("{}", str::from_utf8(rest.as_slice()).unwrap());
+                }
+                let single_pgn = str::from_utf8(data.as_slice()).unwrap();
+                if counter == 0 {
+                    // println!("{}", single_pgn);
+                }
+                // println!("{}", str::from_utf8(rest.as_slice()).unwrap());
+                // parse_headers(single_pgn).unwrap();
+                // passes back to `data` because `rest` may contain more fully formed
+                // PGNs
+                data = rest.clone();
+                counter += 1;
+            }
+        }
 
-        return Ok(max_odd as usize);
-        // if max_pair < max_odd {
-        // } else {
-        //     return Ok(max_pair as usize);
-        // }
+        Ok(())
+    }
+    #[pyfunction]
+    fn stream_file_small(file_path: &str) -> PyResult<()> {
+        const BUF_SIZE: usize = 2_usize.pow(24);
+        let bufreader = BufReader::with_capacity(BUF_SIZE, File::open(file_path)?);
+        let mut decoder = zstd::Decoder::with_buffer(bufreader)?;
+        const READER_SIZE: usize = 2_usize.pow(16);
+        let buffer: &mut [u8] = &mut [0; READER_SIZE as usize];
+        let mut at_eof = false;
+        while !at_eof {
+            let read_size = decoder.read(buffer).unwrap();
+            if read_size != READER_SIZE as usize {
+                at_eof = true;
+            }
+            println!("value of readsize is {} is at eof {}", read_size, at_eof);
+        }
+
+        Ok(())
     }
 }
