@@ -49,7 +49,7 @@ mod iron_pgn_parser {
                 .windows(needle.len())
                 .position(|window| window == needle)
         }
-        const BUF_SIZE: usize = 2_usize.pow(16);
+        const BUF_SIZE: usize = 2_usize.pow(24);
         let bufreader = BufReader::with_capacity(BUF_SIZE, File::open(file_path)?);
         let mut decoder = zstd::Decoder::with_buffer(bufreader)?;
         const READER_SIZE: usize = 2_usize.pow(12);
@@ -74,6 +74,7 @@ mod iron_pgn_parser {
                 //     println!("{:?}", str::from_utf8(data.get(..found).unwrap()));
                 //     is_first = false;
                 // }
+                println!("{}", counter);
                 rest = data.split_off(found + 1);
 
                 if counter == 1 {
@@ -84,30 +85,12 @@ mod iron_pgn_parser {
                     // println!("{}", single_pgn);
                 }
                 // println!("{}", str::from_utf8(rest.as_slice()).unwrap());
-                // parse_headers(single_pgn).unwrap();
+                parse_headers(single_pgn).unwrap();
                 // passes back to `data` because `rest` may contain more fully formed
                 // PGNs
                 data = rest.clone();
                 counter += 1;
             }
-        }
-
-        Ok(())
-    }
-    #[pyfunction]
-    fn stream_file_small(file_path: &str) -> PyResult<()> {
-        const BUF_SIZE: usize = 2_usize.pow(24);
-        let bufreader = BufReader::with_capacity(BUF_SIZE, File::open(file_path)?);
-        let mut decoder = zstd::Decoder::with_buffer(bufreader)?;
-        const READER_SIZE: usize = 2_usize.pow(16);
-        let buffer: &mut [u8] = &mut [0; READER_SIZE as usize];
-        let mut at_eof = false;
-        while !at_eof {
-            let read_size = decoder.read(buffer).unwrap();
-            if read_size != READER_SIZE as usize {
-                at_eof = true;
-            }
-            println!("value of readsize is {} is at eof {}", read_size, at_eof);
         }
 
         Ok(())
