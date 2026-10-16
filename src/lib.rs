@@ -10,20 +10,27 @@ mod iron_pgn_parser {
     use std::fs::File;
     use std::io::{BufReader, Read};
     use zstd::Decoder;
-    use zstd::zstd_safe::WriteBuf;
 
     /// Formats the sum of two numbers as string.
     #[pyfunction]
-    fn parse_san(pgn: String) -> PyResult<usize> {
-        todo!();
+    fn parse_san(pgn: String) -> PyResult<Vec<String>> {
         let brackets_regex =
             Regex::new(r"\[([^]]+)\]").expect("This should always return a good REGEX.");
         let braces_regex = Regex::new(r"\{.*\}").expect("This should always return a good REGEX.");
+        // Stole and slightly modified from https://stackoverflow.com/questions/40007937/regex-help-for-chess-moves-san
+        let move_regex = Regex::new(
+            r"([PNBRQK]?[a-h]?[1-8]?[xX-]?[a-h][1-8](=[NBRQ]| ?e\.p\.)?|O-O(?:-O)?)[+#$]?",
+        )
+        .expect("This should always return a good REGEX.");
         let brackets_removed: String = String::from(brackets_regex.replace_all(pgn.as_str(), ""));
         let braces_and_bracket_removed: String =
-            String::from(braces_regex.replace_all(pgn.as_str(), ""));
+            String::from(braces_regex.replace_all(brackets_removed.as_str(), ""));
+        let moves_as_vec: Vec<String> = move_regex
+            .find_iter(&braces_and_bracket_removed)
+            .map(|m| m.as_str().to_string())
+            .collect();
 
-        return Ok(1 as usize);
+        return Ok(moves_as_vec);
     }
 
     #[pyfunction]
@@ -86,6 +93,7 @@ mod iron_pgn_parser {
                 }
                 // println!("{}", str::from_utf8(rest.as_slice()).unwrap());
                 parse_headers(single_pgn).unwrap();
+                parse_san(single_pgn.to_string()).unwrap();
                 // passes back to `data` because `rest` may contain more fully formed
                 // PGNs
                 data = rest.clone();
