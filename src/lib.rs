@@ -4,6 +4,13 @@
 #[pyo3::pymodule]
 #[pyo3(name = "native")]
 mod iron_pgn_parser {
+    #[pyclass]
+    struct ChessData {
+        #[pyo3(get)]
+        headers: HashMap<String, String>,
+        #[pyo3(get)]
+        moves: Vec<String>,
+    }
     use pyo3::{PyResult, prelude::*, pyfunction};
     use regex::Regex;
     use std::collections::HashMap;
@@ -16,7 +23,7 @@ mod iron_pgn_parser {
         Regex::new(r"\[([^]]+)\]").expect("This should always return a good REGEX.")
     });
     static BRACES_REGEX: LazyLock<Regex> =
-        LazyLock::new(|| Regex::new(r"\{.*\}").expect("This should always return a good REGEX."));
+        LazyLock::new(|| Regex::new(r"\{.*?\}").expect("This should always return a good REGEX."));
 
     // Stole and slightly modified from https://stackoverflow.com/questions/40007937/regex-help-for-chess-moves-san
     static MOVE_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -37,25 +44,39 @@ mod iron_pgn_parser {
     }
 
     #[pyfunction]
-    fn parse_headers(pgn: &str) -> PyResult<HashMap<&str, &str>> {
+    fn parse_headers(pgn: &str) -> PyResult<HashMap<String, String>> {
         // https://stackoverflow.com/a/2403148/32714486
-        let all_brackets: Vec<&str> = BRACKETS_REGEX.find_iter(pgn).map(|m| m.as_str()).collect();
+        let brace_remove = BRACES_REGEX.replace_all(pgn, "");
+        let all_brackets: Vec<&str> = BRACKETS_REGEX
+            .find_iter(&brace_remove)
+            .map(|m| m.as_str())
+            .collect();
 
         let zipped = all_brackets
             .iter()
             .map(|x| x.trim_matches(|c| c == '[' || c == ']'))
             .map(|x| x.splitn(2, " ").collect::<Vec<&str>>())
-            .map(|x| (x[0], x[1]))
-            .collect::<HashMap<&str, &str>>();
+            .filter(|x| x[0] != "%eval")
+            .map(|x| {
+                (
+                    String::from(x[0]),
+                    String::from(x[1].trim_matches(|c| c == '"')),
+                )
+            })
+            .collect::<HashMap<String, String>>();
+        if &zipped["Site"] == r"https:// [%eval -89.04" {
+            println!("{}", pgn);
+        }
         Ok(zipped)
     }
     #[pyfunction]
-    fn stream_file(file_path: &str) -> PyResult<()> {
+    fn stream_file(file_path: &str) -> PyResult<Vec<ChessData>> {
         fn find_subsequence(haystack: &[u8], needle: &[u8]) -> Option<usize> {
             haystack
                 .windows(needle.len())
                 .position(|window| window == needle)
         }
+        let mut global_moves: Vec<ChessData> = Vec::new();
         const BUF_SIZE: usize = 2_usize.pow(24);
         let bufreader = BufReader::with_capacity(BUF_SIZE, File::open(file_path)?);
         let mut decoder = zstd::Decoder::with_buffer(bufreader)?;
@@ -73,18 +94,20 @@ mod iron_pgn_parser {
             tmp.extend(buffer.as_ref());
             let mut data = tmp;
             while let Some(found) = find_subsequence(data.as_slice(), b"\n\n[") {
-                println!("{}", counter);
+                // println!("{}", counter);
                 rest = data.split_off(found + 1);
                 let single_pgn = str::from_utf8(data.as_slice()).unwrap();
-                parse_headers(single_pgn).unwrap();
-                parse_san(single_pgn.to_string()).unwrap();
+                let headers = parse_headers(single_pgn).unwrap();
+                let moves = parse_san(single_pgn.to_string()).unwrap();
                 // passes back to `data` because `rest` may contain more fully formed
                 // PGNs
+                let moves_and_headers = ChessData { headers, moves };
+                global_moves.push(moves_and_headers);
                 data = rest.clone();
                 counter += 1;
             }
         }
 
-        Ok(())
+        Ok(global_moves)
     }
 }
