@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Louis Turpault", email = "louis.turpault@gmail.com" }
 ]
-requires-python = ">=3.13"
+requires-python = ">=3.14"
 dependencies = [
     "chess>=1.11.2",
     "maturin>=1.15.0",
