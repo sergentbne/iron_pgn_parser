@@ -65,12 +65,15 @@ mod iron_pgn_parser {
             })
             .collect::<HashMap<String, String>>();
         if &zipped["Site"] == r"https:// [%eval -89.04" {
-            println!("{}", pgn);
+            let _ = format!("{}", pgn);
         }
         Ok(zipped)
     }
     #[pyfunction]
     fn stream_file(file_path: &str) -> PyResult<Vec<ChessData>> {
+        //Stream a ZSTD file and attempts to parse all of the games contained inside
+        //This function does not have a failure mechanism. if it fails, you are on your own
+        //
         fn find_subsequence(haystack: &[u8], needle: &[u8]) -> Option<usize> {
             haystack
                 .windows(needle.len())
