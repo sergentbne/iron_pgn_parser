@@ -18,6 +18,7 @@ mod iron_pgn_parser {
     use std::io::{BufReader, Read};
     use std::sync::LazyLock;
     use zstd::Decoder;
+    use zstd::zstd_safe::WriteBuf;
 
     static BRACKETS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"\[([^]]+)\]").expect("This should always return a good REGEX.")
@@ -94,11 +95,20 @@ mod iron_pgn_parser {
                 at_eof = true;
             }
             let mut tmp = rest.clone();
-            tmp.extend(buffer.as_ref());
+            // if counter == 3296 {
+            //     println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
+            // }
+            tmp.append(&mut buffer.to_vec());
+            if counter == 3296 {
+                println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
+            }
+
             let mut data = tmp;
             while let Some(found) = find_subsequence(data.as_slice(), b"\n\n[") {
                 // println!("{}", counter);
+
                 rest = data.split_off(found + 1);
+
                 let single_pgn = str::from_utf8(data.as_slice()).unwrap();
                 let headers = parse_headers(single_pgn).unwrap();
                 let moves = parse_san(single_pgn.to_string()).unwrap();
