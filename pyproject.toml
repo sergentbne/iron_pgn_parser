@@ -1,6 +1,6 @@
 [project]
 name = "iron-pgn-parser"
-version = "0.1.2"
+version = "0.4.0"
 description = "A faster PGN parser made in rust"
 readme = "README.md"
 authors = [
