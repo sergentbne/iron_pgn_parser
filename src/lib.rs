@@ -32,7 +32,7 @@ mod iron_pgn_parser {
             .expect("This should always return a good REGEX.")
     });
     #[pyfunction]
-    fn parse_san(pgn: String) -> PyResult<Vec<String>> {
+    fn get_moves(pgn: String) -> PyResult<Vec<String>> {
         let brackets_removed: String = String::from(BRACKETS_REGEX.replace_all(pgn.as_str(), ""));
         let braces_and_bracket_removed: String =
             String::from(BRACES_REGEX.replace_all(brackets_removed.as_str(), ""));
@@ -65,9 +65,6 @@ mod iron_pgn_parser {
                 )
             })
             .collect::<HashMap<String, String>>();
-        if &zipped["Site"] == r"https:// [%eval -89.04" {
-            let _ = format!("{}", pgn);
-        }
         Ok(zipped)
     }
     #[pyfunction]
@@ -95,25 +92,36 @@ mod iron_pgn_parser {
                 at_eof = true;
             }
             let mut tmp = rest.clone();
+            if counter == 3296 {
+                println!("{}", str::from_utf8(&rest.as_slice()).unwrap());
+            }
+            rest.clear();
+
             // if counter == 3296 {
+            //     println!("-----BEFORE TMP BUFFER -----");
             //     println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
             // }
             tmp.append(&mut buffer.to_vec()); // ceci marche pas mais ca marche pour le reste
             // genre seulement quand counter == 3296 ca plante
-            if counter == 3296 {
-                println!("-----TMP BUFFER -----");
-                println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
-            }
-
+            //
+            // if counter == 3296 {
+            //     println!("-----AFTER TMP BUFFER -----");
+            //     println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
+            // }
+            //
             let mut data = tmp;
             while let Some(found) = find_subsequence(data.as_slice(), b"\n\n[") {
                 // println!("{}", counter);
+                if counter == 3296 {
+                    println!("-----IN SEQUENCE-----");
+                    println!("{}", &found);
+                }
 
                 rest = data.split_off(found + 1);
 
                 let single_pgn = str::from_utf8(data.as_slice()).unwrap();
                 let headers = parse_headers(single_pgn).unwrap();
-                let moves = parse_san(single_pgn.to_string()).unwrap();
+                let moves = get_moves(single_pgn.to_string()).unwrap();
                 // passes back to `data` because `rest` may contain more fully formed
                 // PGNs
                 let moves_and_headers = ChessData { headers, moves };

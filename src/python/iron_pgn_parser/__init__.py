@@ -10,7 +10,9 @@ import iron_pgn_parser.native
 def main() -> None:
     start_mine = time.perf_counter()
     found_games: list[iron_pgn_parser.native.ChessData] = (
-        iron_pgn_parser.native.stream_file("lichess_db_standard_rated_2013-03.pgn.zst")
+        iron_pgn_parser.native.stream_file(
+            "data/lichess_db_standard_rated_2013-03.pgn.zst"
+        )
     )
     end_mine = time.perf_counter()
     found_headers = list(map(lambda x: x.headers, found_games))
