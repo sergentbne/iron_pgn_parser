@@ -98,8 +98,10 @@ mod iron_pgn_parser {
             // if counter == 3296 {
             //     println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
             // }
-            tmp.append(&mut buffer.to_vec());
+            tmp.append(&mut buffer.to_vec()); // ceci marche pas mais ca marche pour le reste
+            // genre seulement quand counter == 3296 ca plante
             if counter == 3296 {
+                println!("-----TMP BUFFER -----");
                 println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
             }
 
