@@ -90,31 +90,16 @@ mod iron_pgn_parser {
                 at_eof = true;
             }
             let mut tmp = rest.clone();
-            if counter == 3296 {
-                println!("{}", str::from_utf8(&rest.as_slice()).unwrap());
-            }
             rest.clear();
 
-            if counter == 3296 {
-                println!("-----BEFORE TMP BUFFER -----");
-                println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
-            }
             tmp.append(&mut buffer.to_vec()); // ceci marche pas mais ca marche pour le reste
             // genre seulement quand counter == 3296 ca plante
             //
-            if counter == 3296 {
-                println!("-----AFTER TMP BUFFER -----");
-                println!("{}", str::from_utf8(tmp.as_slice()).unwrap());
-            }
 
             let mut data = tmp;
             rest = data.clone();
             while let Some(found) = find_subsequence(data.as_slice(), b"\n\n[") {
                 // println!("{}", counter);
-                if counter == 3296 {
-                    println!("-----IN SEQUENCE-----");
-                    println!("{}", &found);
-                }
 
                 rest = data.split_off(found + 1);
 
