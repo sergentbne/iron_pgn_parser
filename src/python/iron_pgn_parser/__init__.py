@@ -6,19 +6,19 @@ import chess.pgn
 
 import iron_pgn_parser.native
 
+FILENAME = "data/lichess_db_standard_rated_2013-03.pgn.zst"
+
 
 def main() -> None:
     start_mine = time.perf_counter()
     found_games: list[iron_pgn_parser.native.ChessData] = (
-        iron_pgn_parser.native.stream_file(
-            "data/lichess_db_standard_rated_2013-03.pgn.zst"
-        )
+        iron_pgn_parser.native.stream_file(FILENAME)
     )
     end_mine = time.perf_counter()
     found_headers = list(map(lambda x: x.headers, found_games))
     known_good_headers = []
     start_other = time.perf_counter()
-    with zstd.open("lichess_db_standard_rated_2013-03.pgn.zst", "rt") as f:
+    with zstd.open(FILENAME, "rt") as f:
         while x := chess.pgn.read_headers(f):
             known_good_headers.append(dict(x))
     end_other = time.perf_counter()
@@ -38,5 +38,6 @@ def main() -> None:
                     diff_found = True
                     diff_list.append((d1, d2))
                     break
+    print(known_good_headers.index(diff_list[0][0]))
     pprint(len(diff_list))
     pprint(diff_list[0])

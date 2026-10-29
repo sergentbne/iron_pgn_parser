@@ -17,8 +17,6 @@ mod iron_pgn_parser {
     use std::fs::File;
     use std::io::{BufReader, Read};
     use std::sync::LazyLock;
-    use zstd::Decoder;
-    use zstd::zstd_safe::WriteBuf;
 
     static BRACKETS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(r"\[([^]]+)\]").expect("This should always return a good REGEX.")
