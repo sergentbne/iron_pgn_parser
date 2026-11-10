@@ -1,6 +1,8 @@
 /// A Python module implemented in Rust. The name of this module must match
 /// the `lib.name` setting in the `Cargo.toml`, else Python will not be able to
 /// import the module.
+mod chess;
+
 #[pyo3::pymodule]
 #[pyo3(name = "native")]
 mod iron_pgn_parser {
