@@ -6,7 +6,7 @@ readme = "README.md"
 authors = [
     { name = "Louis Turpault", email = "louis.turpault@gmail.com" }
 ]
-requires-python = ">=3.14"
+requires-python = ">=3.11"
 dependencies = [
     "chess>=1.11.2",
     "maturin>=1.15.0",
@@ -17,6 +17,7 @@ classifier = ["Development Status :: 2 - Pre-Alpha",
 		   "Programming Language :: Rust",
 		   "Programming Language :: Python"]
 license = "BSD-3-Clause-Attribution"
+
 [project.scripts]
 iron-pgn-parser = "iron_pgn_parser:main"
 
@@ -28,3 +29,13 @@ build-backend = "maturin"
 python-source = "src/python"
 module-name = "iron_pgn_parser.native"
 
+[dependency-groups]
+backport = [
+    "backports.zstd>=1.8.0",
+]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.uv.dependency-groups]
+backport = {requires-python = "<=3.13"}
