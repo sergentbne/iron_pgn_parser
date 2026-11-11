@@ -1,24 +1,4 @@
-pub enum ChessPositionRow {
-    A = 1,
-    B = 2,
-    C = 3,
-    D = 4,
-    E = 5,
-    F = 6,
-    G = 7,
-    H = 8,
-}
-
-pub enum ChessPositionCollumn {
-    ONE = 1,
-    TWO = 2,
-    THREE = 3,
-    FOUR = 4,
-    FIVE = 5,
-    SIX = 6,
-    SEVEN = 7,
-    EIGHT = 8,
-}
+use std::collections::{HashMap, hash_map};
 
 pub enum ChessPiece {
     Pawn,
@@ -27,7 +7,10 @@ pub enum ChessPiece {
     Rook,
     Queen,
     King,
+    None,
 }
+
+const INITIAL_GAME = [[]];
 
 impl<T: Into<&str>> From<T> for ChessPiece {
     fn from(object: T) -> Self {
@@ -64,8 +47,8 @@ pub struct ChessMove {
 }
 
 struct ChessPosition {
-    row: ChessPositionRow,
-    collumn: ChessPositionCollumn,
+    row: u8,
+    collumn: u8,
 }
 
 impl ChessGame {
